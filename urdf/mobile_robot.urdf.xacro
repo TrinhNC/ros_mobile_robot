@@ -1,93 +1,132 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="mobile_robot">
 
-<xacro:property name="length" value="0.4" />
-<xacro:property name="width" value="0.2" />
-<xacro:property name="depth" value="0.1" />
+<!-- Base Link -->
+<link name="base_link">
+</link>
+
+<xacro:property name="height" value="0.4" /> <!-- [m] -->
+<xacro:property name="width" value="0.4" /> <!-- [m] -->
+<xacro:property name="depth" value="0.1" /> <!-- [m] -->
+
+<!--Chassis-->
+<link name="chassis">
+  <visual>
+    <geometry>
+      <box size="${height} ${width} ${depth}"/>
+    </geometry>
+  </visual>
+  <collision>
+    <geometry>
+      <box size="${height} ${width} ${depth}"/>
+    </geometry>
+  </collision>
+  <inertial>
+    <mass value="1.0"/> <!-- [kg] -->
+    <inertia ixx="0.014167" ixy="0.0" ixz="0.0" iyy="0.026667" iyz="0.0" izz="0.014167"/>
+  </inertial>
+</link>
+
+<gazebo reference="chassis">
+  <material>Gazebo/Red</material>
+</gazebo>
+
+<joint name="chassis_joint" type="fixed">
+  <parent link="base_link"/>
+  <child link="chassis"/>
+</joint>
 
 <material name="blue">
     <color rgba="0 0 0.8 1"/>
 </material>
 
-<!--chasis-->
-<link name="base_link">
-    <visual>
-      <geometry>
-        <box size="${length} ${width} ${depth}"/>
-      </geometry>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="${length} ${width} ${depth}"/>
-      </geometry>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-    </collision>
-    <inertial>
-      <mass value="3"/>
-      <inertia ixx="0.0425" ixy="0.0" ixz="0.0" iyy="0.0125" iyz="0.0" izz="0.05"/>
-    </inertial>
-</link>
+<xacro:property name="wheel_height" value="0.04" /> <!-- [m] -->
+<xacro:property name="wheel_radius" value="0.06" /> <!-- [m] -->
 
-<!--wheel macro-->
-<xacro:macro name="wheel" params="prefix suffix reflect1 reflect2">
-	<link name="${prefix}_${suffix}_wheel">
+<!-- Wheel macro-->
+<xacro:macro name="wheel" params="prefix suffix reflect_x reflect_y reflect_r reflect_axis">
+  
+  <!-- Wheel link -->
+	<link name="${prefix}_wheel_${suffix}">
     <visual>
       <geometry>
-        <cylinder length="0.05" radius="0.1"/>
+        <cylinder length="${wheel_height}" radius="${wheel_radius}"/>
       </geometry>
-      <origin xyz="0 0 0" rpy="1.5707 0 0" />
       <material name="blue"/>
     </visual>
     <collision>
       <geometry>
-        <cylinder length="0.05" radius="0.1"/>
+        <cylinder length="${wheel_height}" radius="${wheel_radius}"/>
       </geometry>
-      <origin xyz="0 0 0" rpy="1.5707 0 0" />
     </collision>
     <inertial>
-      <mass value="0.5"/>
-      <inertia ixx="0.00135" ixy="0.0" ixz="0.0" iyy="0.0025" iyz="0.0" izz="0.00135"/>
+      <mass value="0.3"/>  <!-- [kg] -->
+      <inertia ixx="0.00031" ixy="0.0" ixz="0.0" iyy="0.00031" iyz="0.0" izz="0.00054"/>
     </inertial>
-    </link>
+  </link>
 
-    <joint name="${prefix}_${suffix}_wheel_joint" type="continuous">
-        <parent link="base_link"/>
-        <child link="${prefix}_${suffix}_wheel"/>
-        <axis xyz="0 1 0"/>
-        <origin xyz="${reflect1*length/2} ${reflect2*(width+0.05)/2} 0" />
+  <!-- Wheel joint -->
+  <joint name="${prefix}_wheel_${suffix}_joint" type="continuous">
+    <parent link="chassis"/>
+    <child link="${prefix}_wheel_${suffix}"/>
+    <origin xyz="${reflect_x*height/2} ${reflect_y*(width/2+0.025)} 0" rpy="${reflect_r*1.5707} 0 0"/>
+    <axis xyz="0 0 ${reflect_axis}"/>
+  </joint>
+
+  <!-- Adding transmission to wheels -->
+  <transmission name="${prefix}_wheel_${suffix}_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <actuator name="${prefix}_wheel_${suffix}_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+    <joint name="${prefix}_wheel_${suffix}_joint">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
     </joint>
-	
-    <!--adding transmission to wheels-->
-    <transmission name="${prefix}_${suffix}_wheel_trans">
-      <type>transmission_interface/SimpleTransmission</type>
-      <actuator name="${prefix}_${suffix}_wheel_motor">
-        <mechanicalReduction>1</mechanicalReduction>
-      </actuator>
-      <joint name="${prefix}_${suffix}_wheel_joint">
-        <hardwareInterface>VelocityJointInterface</hardwareInterface>
-      </joint>
-    </transmission>
-    
-    <gazebo reference="${prefix}_${suffix}_wheel">
-      <mu1 value="200.0"/>
-      <mu2 value="100.0"/>
-      <kp value="10000000.0" />
-      <kd value="1.0" />
-      <material>Gazebo/Grey</material>
-    </gazebo>
+  </transmission>
+  
+  <gazebo reference="${prefix}_wheel_${suffix}">
+    <mu1 value="0.4"/>
+    <mu2 value="0.2"/>
+    <material>Gazebo/Blue</material>
+  </gazebo>
 
 </xacro:macro>
 
-<xacro:wheel prefix="right" suffix="front" reflect1="1" reflect2="-1"/>
-<xacro:wheel prefix="right" suffix="rear" reflect1="-1" reflect2="-1"/>
-<xacro:wheel prefix="left" suffix="front" reflect1="1" reflect2="1"/>
-<xacro:wheel prefix="left" suffix="rear" reflect1="-1" reflect2="1"/>
+<!-- Wheels definition-->
+<xacro:wheel prefix="front" suffix="right" reflect_x="1" reflect_y="-1" reflect_r="1" reflect_axis="-1"/>
+<xacro:wheel prefix="front" suffix="left" reflect_x="1" reflect_y="1" reflect_r="-1" reflect_axis="1"/>
+<xacro:wheel prefix="rear" suffix="right" reflect_x="-1" reflect_y="-1" reflect_r="1" reflect_axis="-1"/>
+<xacro:wheel prefix="rear" suffix="left" reflect_x="-1" reflect_y="1" reflect_r="-1" reflect_axis="1"/>
 
-<!--link Gazebo and ROS-->
+<!-- Head box -->
+<material name="green">
+  <color rgba="0 0.8 0 1"/>
+</material>
+
+<link name="head">
+  <visual>
+    <geometry>
+      <box size="0.04 0.04 0.04"/>
+    </geometry>
+    <material name="green"/>
+  </visual>
+</link>
+
+<joint name="head_joint" type="fixed">
+  <parent link="chassis"/>
+  <child link="head"/>
+  <origin xyz="0.1 0 0.07" rpy="0 0 0"/>
+</joint>
+
+<gazebo reference="head">
+  <material>Gazebo/Green</material>
+</gazebo>
+
+<!-- Link Gazebo and ROS -->
 <gazebo>
-    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
-      <robotNamespace>/</robotNamespace>
-    </plugin>
+  <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+    <robotNamespace>/</robotNamespace>
+  </plugin>
 </gazebo>
 
 </robot>
