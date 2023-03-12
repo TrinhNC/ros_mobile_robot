@@ -44,10 +44,10 @@
 <xacro:property name="wheel_radius" value="0.06" /> <!-- [m] -->
 
 <!-- Wheel macro-->
-<xacro:macro name="wheel" params="prefix suffix reflect_x reflect_y reflect_r reflect_axis">
+<xacro:macro name="wheel" params="name reflect_x reflect_y reflect_r reflect_axis">
   
   <!-- Wheel link -->
-	<link name="${prefix}_wheel_${suffix}">
+	<link name="${name}_wheel">
     <visual>
       <geometry>
         <cylinder length="${wheel_height}" radius="${wheel_radius}"/>
@@ -66,37 +66,35 @@
   </link>
 
   <!-- Wheel joint -->
-  <joint name="${prefix}_wheel_${suffix}_joint" type="continuous">
+  <joint name="${name}_wheel_joint" type="continuous">
     <parent link="chassis"/>
-    <child link="${prefix}_wheel_${suffix}"/>
+    <child link="${name}_wheel"/>
     <origin xyz="${reflect_x*height/2} ${reflect_y*(width/2+0.025)} 0" rpy="${reflect_r*1.5707} 0 0"/>
     <axis xyz="0 0 ${reflect_axis}"/>
   </joint>
 
   <!-- Adding transmission to wheels -->
-  <transmission name="${prefix}_wheel_${suffix}_trans">
+  <transmission name="${name}_wheel_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <actuator name="${prefix}_wheel_${suffix}_motor">
+    <actuator name="${name}_wheel_motor">
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
-    <joint name="${prefix}_wheel_${suffix}_joint">
+    <joint name="${name}_wheel_joint">
       <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
     </joint>
   </transmission>
   
-  <gazebo reference="${prefix}_wheel_${suffix}">
-    <mu1 value="0.4"/>
-    <mu2 value="0.2"/>
+  <gazebo reference="${name}_wheel">
     <material>Gazebo/Blue</material>
   </gazebo>
 
 </xacro:macro>
 
 <!-- Wheels definition-->
-<xacro:wheel prefix="front" suffix="right" reflect_x="1" reflect_y="-1" reflect_r="1" reflect_axis="-1"/>
-<xacro:wheel prefix="front" suffix="left" reflect_x="1" reflect_y="1" reflect_r="-1" reflect_axis="1"/>
-<xacro:wheel prefix="rear" suffix="right" reflect_x="-1" reflect_y="-1" reflect_r="1" reflect_axis="-1"/>
-<xacro:wheel prefix="rear" suffix="left" reflect_x="-1" reflect_y="1" reflect_r="-1" reflect_axis="1"/>
+<xacro:wheel name="front_right" reflect_x="1" reflect_y="-1" reflect_r="1" reflect_axis="-1"/>
+<xacro:wheel name="front_left" reflect_x="1" reflect_y="1" reflect_r="-1" reflect_axis="1"/>
+<xacro:wheel name="rear_right" reflect_x="-1" reflect_y="-1" reflect_r="1" reflect_axis="-1"/>
+<xacro:wheel name="rear_left" reflect_x="-1" reflect_y="1" reflect_r="-1" reflect_axis="1"/>
 
 <!-- Head box -->
 <material name="green">

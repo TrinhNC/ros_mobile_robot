@@ -4,15 +4,16 @@
 type: "diff_drive_controller/DiffDriveController"
 publish_rate: 50
 
-left_wheel: ['front_wheel_left_joint', 'rear_wheel_left_joint']
-right_wheel: ['front_wheel_right_joint', 'rear_wheel_right_joint']
+left_wheel: ['front_left_wheel_joint', 'rear_left_wheel_joint']
+right_wheel: ['front_right_wheel_joint', 'rear_right_wheel_joint']
 
 # Wheel separation and diameter. These are both optional.
 # diff_drive_controller will attempt to read either one or both from the
 # URDF if not specified as a parameter
-wheel_separation : 0.45
-wheel_radius : 0.06
+wheel_separation : 0.45 #[m]
+wheel_radius : 0.06     #[m]
 
+enable_odom_tf: true
 # Odometry covariances for the encoder output of the robot. These values should
 # be tuned to your robot's sample odometry data, but these values are a good place
 # to start
